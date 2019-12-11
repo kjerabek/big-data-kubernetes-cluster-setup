@@ -1,0 +1,52 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: spark-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    ingress.kubernetes.io/auth-type: "basic"
+    ingress.kubernetes.io/auth-secret: "use_my_secret"
+    traefik.ingress.kubernetes.io/frontend-entry-points: http, https
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+spec:
+  tls:
+    - secretName: some-cert #specify yours
+  rules:
+  - host: spark.host1.example.com #specify yours
+    http:
+      paths:
+      - backend:
+          serviceName: spark-worker
+          servicePort: http
+  - host: spark.host2.example.com #specify yours
+    http:
+      paths:
+      - backend:
+          serviceName: spark-worker
+          servicePort: http
+  - host: spark.host3.example.com #specify yours
+    http:
+      paths:
+      - backend:
+          serviceName: spark-worker
+          servicePort: http
+  - host: spark.host4.example.com #specify yours
+    http:
+      paths:
+      - backend:
+          serviceName: spark
+          servicePort: http
+  - host: db.host4.example.com #specify yours
+    http:
+      paths:
+      - backend:
+          serviceName: zeppelin-server 
+          servicePort: sparkui
+          #serviceName: spark-submit
+          #servicePort: http
+  - host: zp.host4.example.com #specify yours
+    http:
+      paths:
+      - backend:
+          serviceName: zeppelin-server
+          servicePort: http

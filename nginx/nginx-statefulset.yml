@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  serviceName: nginx
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: docker.io/nginx:alpine
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: nginx-data
+          mountPath: /usr/share/nginx/html
+      nodeSelector:
+        worker: "false"
+      restartPolicy: Always
+  volumeClaimTemplates:
+  - metadata:
+      name: nginx-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: nginx
+      resources:
+        requests:
+          storage: 1Gi

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<!--<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util
+        http://www.springframework.org/schema/util/spring-util.xsd">
+    <bean id="ignite.cfg" class="org.apache.ignite.configuration.IgniteConfiguration">
+<property name="peerClassLoadingEnabled" value="false" />
+<!-- Enable only some events and leave other ones disabled.-->
+<!--    <property name="includeEventTypes">
+        <list>
+            <util:constant static-field="org.apache.ignite.events.EventType.EVT_TASK_STARTED"/>
+            <util:constant static-field="org.apache.ignite.events.EventType.EVT_TASK_FINISHED"/>
+            <util:constant static-field="org.apache.ignite.events.EventType.EVT_TASK_FAILED"/>
+        </list>
+    </property>-->
+<!-- Configure internal thread pool. -->
+    <property name="publicThreadPoolSize" value="128"/>
+    
+    <!-- Configure system thread pool. -->
+    <property name="systemThreadPoolSize" value="64"/>
+<!-- Durable memory configuration. -->
+<!-- Redefining maximum memory size for the cluster node usage. -->  
+	<property name="dataStorageConfiguration">
+		<bean class="org.apache.ignite.configuration.DataStorageConfiguration">
+			<property name="writeThrottlingEnabled" value="true"/>
+			<!-- Set concurrency level -->
+			<property name="concurrencyLevel" value="10"/>
+			<!-- Redefining the default region's settings -->
+			<property name="dataRegionConfigurations">
+				<list>
+					<!--
+					Defining a data region that will consume up to 500 MB of RAM and 
+					will have eviction and persistence enabled.
+					-->
+					<bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+						<!-- Custom region name. -->
+						<property name="name" value="dr"/>
+						<!-- 100 MB initial size. -->
+						<property name="initialSize" value="#{1024L * 1024 * 1024}"/>
+						<!-- Setting the size of the default region to 4GB. -->
+						<property name="maxSize" value="#{4L * 1024 * 1024 * 1024}"/>
+						<property name="persistenceEnabled" value="true"/>
+						<!-- Increasing the buffer size to 1 GB. -->
+						<property name="checkpointPageBufferSize" 
+						value="#{1024L * 1024 * 1024}"/>
+					</bean>
+				</list>
+			</property>
+			<property name="defaultDataRegionConfiguration">
+				<bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+					<property name="name" value="Default_Region"/>
+					<!-- Setting the size of the default region to 4GB. -->
+					<!-- 100 MB initial size. -->
+					<property name="initialSize" value="#{1024L * 1024 * 1024}"/>
+					<!-- Setting the size of the default region to 4GB. -->
+					<property name="maxSize" value="#{4L * 1024 * 1024 * 1024}"/>
+					<property name="persistenceEnabled" value="true"/>
+					<!-- Increasing the buffer size to 1 GB. -->
+					<property name="checkpointPageBufferSize" 
+					value="#{1024L * 1024 * 1024}"/>
+				</bean>
+			</property>
+		</bean>
+	</property>
+
+	<property name="cacheConfiguration">
+		<list>
+			<!-- Cache that is mapped to a specific data region. -->
+			<!--<bean class="org.apache.ignite.configuration.CacheConfiguration">-->
+			<bean id="cache-template-bean" abstract="true" class="org.apache.ignite.configuration.CacheConfiguration">
+				<!-- Enabling on-heap caching for this distributed cache. -->
+				<property name="onheapCacheEnabled" value="true"/>
+				<!--
+				Assigning the cache to the `500MB_Region` defined earlier.
+				-->
+				<property name="dataRegionName" value="Default_Region"/>
+
+				<!-- Cache name. -->
+				<property name="name" value="pcaps*"/>
+				<!-- Set write synchronization mode. -->
+				<!--<property name="writeSynchronizationMode" value="FULL_ASYNC"/>-->
+
+				<!-- Group the cache belongs to. -->
+				<!-- Set cache mode. -->
+				<property name="cacheMode" value="PARTITIONED"/>
+				<!-- Set number of backups to 0-->
+				<property name="backups" value="0"/>
+				<!-- Enable off-heap storage with unlimited size. -->
+				<!--            <property name="offHeapMaxMemory" value="0"/>-->
+				<!-- Disable swap. -->
+				            <!--<property name="swapEnabled" value="false"/>-->
+				<!-- Explicitly disable peer class loading. -->
+				<!--            <property name="peerClassLoadingEnabled" value="false"/> -->
+				<!-- Set rebalance batch size to 1 MB. -->
+				<property name="rebalanceBatchSize" value="#{1024 * 1024}"/>
+
+				<!-- Explicitly disable rebalance throttling. -->
+				<property name="rebalanceThrottle" value="0"/>
+
+				<!-- Set 4 threads for rebalancing. -->
+				<property name="rebalanceThreadPoolSize" value="10"/>
+
+				<!-- Additional cache configuration parameters -->
+			</bean>
+		</list>
+	</property>
+
+  <property name="discoverySpi">
+    <bean class="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi">
+      <property name="ipFinder">
+        <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.kubernetes.TcpDiscoveryKubernetesIpFinder"/>
+      </property>
+    </bean>
+  </property>
+    </bean>
+</beans>

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zookeeper
+  labels:
+    app: zookeeper
+spec:
+  serviceName: zookeeper
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      terminationGracePeriodSeconds: 1800
+      containers:
+      - name: zookeeper
+        image: docker.io/wurstmeister/zookeeper
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 2181
+          name: zookeeper
+      nodeSelector:
+        worker: "false"

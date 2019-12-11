@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    service: spark-submit
+    app: spark-submit
+  name: spark-submit
+spec:
+  serviceAccountName: ignite
+  containers:
+  - image: bde2020/spark-submit:2.2.0-hadoop2.7
+    name: spark-submit
+    ports:
+    - containerPort: 4040
+      hostPort: 4040
+    resources: {}
+  nodeSelector:
+    worker: "false"
+  restartPolicy: OnFailure

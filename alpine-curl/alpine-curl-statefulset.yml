@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alpine-curl
+  labels:
+    app: alpine-curl
+spec:
+  serviceName: alpine-curl
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alpine-curl
+  template:
+    metadata:
+      labels:
+        app: alpine-curl
+    spec:
+      containers:
+      - name: alpine-curl
+        image: docker.io/nginx:alpine
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: alpine-curl-data
+          mountPath: /mnt
+      nodeSelector:
+        worker: "false"
+      restartPolicy: Always
+  volumeClaimTemplates:
+  - metadata:
+      name: alpine-curl-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: alpine-curl
+      resources:
+        requests:
+          storage: 20Gi

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: hadoop
+  name: hadoop-datanode
+spec:
+  clusterIP: None
+  selector:
+    app: hadoop

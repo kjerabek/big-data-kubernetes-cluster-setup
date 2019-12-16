@@ -1,0 +1,75 @@
+version: '3'
+services:
+  spark-master:
+    image: bde2020/spark-master:2.2.0-hadoop2.8-hive-java8
+    ports:
+      - "8089:8080"
+    networks:
+      - spark-net
+    deploy:
+      replicas: 1
+      mode: replicated
+      placement:
+        constraints:
+          - node.labels.worker == false
+      restart_policy:
+        condition: on-failure
+      labels:
+        traefik.backend: spark-master
+        traefik.docker.network: spark-net
+        traefik.port: 8089
+        traefik.enable: "true"
+    env_file:
+      - ./hadoop.env
+
+  spark-worker:
+    image: bde2020/spark-worker:2.2.0-hadoop2.8-hive-java8
+    networks:
+      - spark-net
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+    ports:
+      - "8081:8081"
+    deploy:
+      replicas: 3
+      mode: replicated
+      placement:
+        constraints:
+          - node.labels.worker == true
+      restart_policy:
+        condition: on-failure
+      labels:
+        traefik.backend: spark-worker
+        traefik.docker.network: spark-net
+        traefik.port: 8081
+        traefik.enable: "true"
+    env_file:
+      - ./hadoop.env
+
+#  spark-submit:
+#    image: bde2020/spark-submit:2.4.0-hadoop2.8
+#    ports:
+#      - "4040:4040"
+#    networks:
+#      - spark-net
+#    deploy:
+#      replicas: 1
+#      mode: replicated
+#      placement:
+#        constraints:
+#          - node.labels.worker == false
+#      restart_policy:
+#        condition: on-failure
+#      labels:
+#        traefik.backend: spark-submit
+#        traefik.docker.network: spark-net
+#        traefik.port: 4040
+#        traefik.enable: "true"
+#    env_file:
+#      - ./hadoop.env
+
+
+
+networks:
+  spark-net:
+    external: true
